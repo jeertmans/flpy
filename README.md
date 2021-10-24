@@ -1,4 +1,4 @@
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jeertmans/flpy/main.svg)](https://results.pre-commit.ci/latest/github/jeertmans/flpy/main) [![PyPI version](https://badge.fury.io/py/flpy.svg)](https://badge.fury.io/py/flpy)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jeertmans/flpy/main.svg)](https://results.pre-commit.ci/latest/github/jeertmans/flpy/main) [![PyPI version](https://badge.fury.io/py/flpy.svg)](https://badge.fury.io/py/flpy) [![Documentation Status](https://readthedocs.org/projects/flpy/badge/?version=latest)](https://flpy.readthedocs.io/en/latest/?badge=latest)
 
 # Functional, but Lazy Python
 
