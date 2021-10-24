@@ -5,7 +5,7 @@
 With **FLPy**, improve the readibility of your programs by leveraging functional programming.
 
 ### Installation
-**FLPY** has no external dependencies, and can be installed using `pip`:
+**FLPy** has no external dependencies, and can be installed using `pip`:
 ```
 pip install flpy
 ```
