@@ -103,24 +103,20 @@ class Iterable(object):
     def unwrap(self):
         return self.x
 
-    @returns_iterator
     @takes_function
     def map(self, f):
-        return map(f, self.x)
+        return Iterator(map(f, self.x))
 
-    @returns_iterator
     @takes_function
     def filter(self, f):
-        return filter(f, self.x)
+        return Iterator(filter(f, self.x))
 
-    @returns_iterator
-    def collect(self, collector=list):
-        return collector(self.x)
+    def collect(self, collector: typing.Callable = list):
+        return Iterable(collector(self.x))
 
-    @returns_iterator
     @takes_function
     def filter_map(self, f):
-        return filter(None, self.map(f))
+        return self.map(f).filter(None)
 
     @returns_self
     @takes_function
@@ -128,34 +124,27 @@ class Iterable(object):
         for e in self.x:
             f(e)
 
-    @returns_iterator
     def chain(self, *its):
-        return chain(self, *its)
+        return Iterator(chain(self, *its))
 
-    @returns_iterator
     def slice(self, *args):
-        return itertools.islice(self.x, *args)
+        return Iterator(itertools.islice(self.x, *args))
 
-    @returns_iterator
     def skip(self, n):
         return self.slice(n, None)
 
-    @returns_iterator
     def take(self, n):
         return self.slice(n)
 
-    @returns_iterator
     def every(self, n):
         return self.slice(None, None, n)
 
-    @returns_iterator
     def repeat(self, times=None):
-        return repeat(self.x, times=times)
+        return Iterator(repeat(self.x, times=times))
 
-    @returns_iterator
     def __getitem__(self, slc):
         try:
-            return self.x[slc]
+            return It(self.x[slc])
         except TypeError:
             if slc is Ellipsis:
                 return self
@@ -175,23 +164,19 @@ class Iterable(object):
     def min_max(self):
         return self.min(), self.max()
 
-    @returns_iterator
     @takes_function
     def reduce(self, f, *args, **kwargs):
-        return functools.reduce(f, self.x, *args, **kwargs)
+        return Iterator(functools.reduce(f, self.x, *args, **kwargs))
 
-    @returns_iterator
     @takes_function
     def accumulate(self, f, *args, **kwargs):
-        return functools.accumulate(f, self.x, *args, **kwargs)
+        return Iterator(functools.accumulate(f, self.x, *args, **kwargs))
 
-    @returns_iterator
     def zip(self, *args):
-        return zip(self.x, *args)
+        return Iterator(zip(self.x, *args))
 
-    @returns_iterator
     def zip_longest(self, *args):
-        return itertools.zip_longest(self.x, *args)
+        return Iterator(itertools.zip_longest(self.x, *args))
 
     @returns_self
     def to(self, template, safe=True):

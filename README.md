@@ -42,5 +42,5 @@ Given an input sequence `x`, print all, but the first, squared values that are d
 36
 81
 >>> y
-ItO<[36, 81]>
+ItA<[36, 81]>
 ```
