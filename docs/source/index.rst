@@ -17,7 +17,7 @@ Documentation
 Contributor Guide
 =================
 
-Work in progres..
+Work in progress..
 
 Index et tables
 ==================
