@@ -35,7 +35,7 @@ Given an input sequence `x`, print all, but the first, squared values that are d
 
 >>> y = (
 ...     It(x)
-...     .map('|v| v * v')  # You can also use lambda or any other Callable
+...     .map('|v| v * v')  # You can also use lambda or any other callable
 ...     .filter('|v| v % 3 == 0')
 ...     .skip(1)
 ...     .collect()  # Collects the iterator into a list

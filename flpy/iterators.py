@@ -64,7 +64,7 @@ def empty_iterable():
 
 class Iterable(object):
     """
-    An Iterable can wrap Python object that implements __iter__,
+    An Iterable can wrap Python object that implements :py:func:`iter`,
     and re-implements many builtin features with a functionnal programming approach.
 
 
@@ -105,10 +105,30 @@ class Iterable(object):
 
     @takes_function
     def map(self, f):
+        """
+        Apply :py:func:`map` on current object.
+
+        :Examples:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).map('|x| x * x').collect()
+        ItA<[1, 4, 9]>
+
+        """
         return Iterator(map(f, self.x))
 
     @takes_function
     def filter(self, f):
+        """
+        Apply :py:func:`filter` on current object.
+
+        :Examples:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).filter('|x| x > 1').collect()
+        ItA<[2, 3]>
+
+        """
         return Iterator(filter(f, self.x))
 
     def collect(self, collector: typing.Callable = list):
@@ -116,6 +136,9 @@ class Iterable(object):
 
     @takes_function
     def filter_map(self, f):
+        """
+        Chain :py:func:`Iterable.map` and :py:func:`Iterable.filter` to only return non-None results.
+        """
         return self.map(f).filter(None)
 
     @returns_self
@@ -125,7 +148,10 @@ class Iterable(object):
             f(e)
 
     def chain(self, *its):
-        return Iterator(chain(self, *its))
+        """
+        Chain current object with any number of objects that implements :py:func:`iter` using :py:func:`itertools.chain`.
+        """
+        return Iterator(itertools.chain(self, *its))
 
     def slice(self, *args):
         return Iterator(itertools.islice(self.x, *args))
@@ -192,7 +218,7 @@ def empty_iterator():
 
 class Iterator(Iterable):
     """
-    A subclass of Iterable where the wrapped argument also implements __next__ method, thus providing additional possibilities.
+    A subclass of Iterable where the wrapped argument also implements :py:func:`next` method, thus providing additional possibilities.
     """
 
     @classmethod
@@ -211,7 +237,7 @@ class Iterator(Iterable):
 
 def It(x: typing.Any) -> typing.Union[Iterable, Iterator]:
     """
-    Create an instance of Iterable or Iterator object depending on if the argument implements __next__ or not.
+    Create an instance of Iterable or Iterator object depending on if the argument implements :py:func:`next` or not.
     """
     if isinstance(x, Iterator):
         return Iterator(x)
