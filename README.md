@@ -1,3 +1,5 @@
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jeertmans/flpy/main.svg)](https://results.pre-commit.ci/latest/github/jeertmans/flpy/main) [![PyPI version](https://badge.fury.io/py/flpy.svg)](https://badge.fury.io/py/flpy)
+
 # Functional, but Lazy Python
 
 With **FLPy**, improve the readibility of your programs by leveraging functional programming.
