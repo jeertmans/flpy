@@ -6,7 +6,10 @@ import re
 STR_FUNC_RE = re.compile(r"\|([^\|]*)\|(.*)")
 
 
-def parse_func(func: typing.Union[typing.Callable, str]) -> typing.Callable:
+Function = typing.Union[typing.Callable, str, None]
+
+
+def parse_func(func: Function) -> typing.Callable:
     """
     Parse a function into a callable.
     Input argument can either be a callable or a string with Rust-like syntax.
@@ -88,8 +91,18 @@ class Iterable(object):
     def __len__(self):
         return len(self.x)
 
-    def iter(self):
-        return iter(self.x)
+    def iter(self) -> "Iterator":
+        """
+        Return iterator version of current object.
+
+        :Example:
+
+        >>> from flpy import It
+        >>> it = It([1, 2, 3])
+        >>> next(it.iter())
+        1
+        """
+        return Iterator(iter(self.x))
 
     def __iter__(self):
         return self.iter()
@@ -104,30 +117,34 @@ class Iterable(object):
         return self.x
 
     @takes_function
-    def map(self, f):
+    def map(self, f) -> "Iterator":
         """
-        Apply :py:func:`map` on current object.
+        Apply built-in :py:func:`.map` on current object.
+
+        :param f: a function or string (see :py:func:`parse_func`)
+        :return: the resulting iterator
 
         :Examples:
 
         >>> from flpy import It
         >>> It([1, 2, 3]).map('|x| x * x').collect()
         ItA<[1, 4, 9]>
-
         """
         return Iterator(map(f, self.x))
 
     @takes_function
-    def filter(self, f):
+    def filter(self, f) -> "Iterator":
         """
-        Apply :py:func:`filter` on current object.
+        Apply built-in :py:func:`.filter` on current object.
+
+        :param f: a function or string (see :py:func:`parse_func`)
+        :return: the resulting iterator
 
         :Examples:
 
         >>> from flpy import It
         >>> It([1, 2, 3]).filter('|x| x > 1').collect()
         ItA<[2, 3]>
-
         """
         return Iterator(filter(f, self.x))
 
@@ -137,19 +154,39 @@ class Iterable(object):
     @takes_function
     def filter_map(self, f):
         """
-        Chain :py:func:`Iterable.map` and :py:func:`Iterable.filter` to only return non-None results.
+        Chain :py:meth:`Iterable.map` and :py:meth:`Iterable.filter` to only return non-None results.
         """
         return self.map(f).filter(None)
 
-    @returns_self
     @takes_function
-    def for_each(self, f):
+    def for_each(self, f) -> "Iterable":
+        """
+        Apply a function on each element and return self.
+
+        :Example:
+
+        >>> from flpy import It
+        >>> it = It([1, 2, 3]).for_each('|v| print(v)')
+        1
+        2
+        3
+        >>> it
+        It<A>[1, 2, 3]>
+        """
         for e in self.x:
             f(e)
+
+        return self
 
     def chain(self, *its):
         """
         Chain current object with any number of objects that implements :py:func:`iter` using :py:func:`itertools.chain`.
+
+        :Example:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).chain([4, 5, 6]).collect()
+        ItA<[1, 2, 3, 4, 5, 6]>
         """
         return Iterator(itertools.chain(self, *its))
 
@@ -212,7 +249,18 @@ class Iterable(object):
             self.set_value(empty_iterable())
 
 
-def empty_iterator():
+def empty_iterator() -> typing.Iterator:
+    """
+    Return an empty iterator.
+
+    :return: an empty iterator
+
+    :Example:
+
+    >>> from flpy.iterators import empty_iterator, It
+    >>> It(empty_iterator()).collect()
+    ItA<[]>
+    """
     yield from ()
 
 
