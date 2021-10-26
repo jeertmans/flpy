@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="flpy",
-    version="1.0.1",
+    version="1.0.2",
     author="Jérome Eertmans",
     author_email="jeertmans@icloud.com",
     description="Functional but Lazy Python",
