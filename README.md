@@ -46,3 +46,20 @@ Given an input sequence `x`, print all, but the first, squared values that are d
 >>> y
 ItA<[36, 81]>
 ```
+
+
+### TODOs
+
+Non-exhaustive list of ideas.
+
+1. Implement parallel iterators
+2. Add kwargs support for built-in functions
+3. Increase # of examples
+4. Improve docs
+5. Write contribution guidelines
+6. Setup mypy
+7. Add unitary tests
+8. Add benchmarks vs. pure Python to measure overhead
+9. Add support for async iterators
+10. ...
+

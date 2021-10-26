@@ -60,6 +60,12 @@ def empty_iterable() -> typing.Iterable:
     Return an empty iterable, i.e., an empty list.
 
     :return: an iterable
+
+    :Example:
+
+    >>> from flpy.iterators import empty_iterable
+    >>> empty_iterable()
+    []
     """
     return list()
 
@@ -68,7 +74,6 @@ class Iterable(object):
     """
     An Iterable can wrap Python object that implements :py:func:`iter`,
     and re-implements many builtin features with a functionnal programming approach.
-
 
     """
 
@@ -123,6 +128,7 @@ class Iterable(object):
         ItA<[4, 5, 6]>
         """
         self.x = x
+        return self
 
     def unwrap(self) -> typing.Iterable:
         """
@@ -164,7 +170,6 @@ class Iterable(object):
         """
         return Iterator(filter(f, self.x))
 
-    @takes_function
     def collect(self, collector: typing.Callable = list) -> "Iterable":
         """
         Collect the current Iterable into a new Iterable using `collector` function.
@@ -173,6 +178,7 @@ class Iterable(object):
         :param f: a :py:func:`parse_func` compatible function
         :return: an Iterable
         """
+        collector = parse_func(collector)
         return Iterable(collector(self.x))
 
     @takes_function
