@@ -9,10 +9,22 @@ STR_FUNC_RE = re.compile(r"\|([^\|]*)\|(.*)")
 Function = typing.Union[typing.Callable, str, None]
 
 
-def parse_func(func: Function) -> typing.Callable:
+def parse_func(func: Function) -> typing.Optional[typing.Callable]:
     """
     Parse a function into a callable.
     Input argument can either be a callable or a string with Rust-like syntax.
+
+    Rust-like syntax assumes arguments are enclosed between | and are separated by commas: \|arg1, arg2, ..., argn\|.
+
+    :Example:
+
+    >>> from flpy.iterators import parse_func
+    >>> f = parse_func(lambda x, y: x * y)
+    >>> f(4, 5)
+    20
+    >>> f = parse_func('|x, y| x * y')
+    >>> f(4, 5)
+    20
     """
     if isinstance(func, str):
         match = STR_FUNC_RE.match(func)
@@ -23,13 +35,18 @@ def parse_func(func: Function) -> typing.Callable:
             raise ValueError(
                 f"Argument {func} could not be parsed into a valid function."
             )
-    elif isinstance(func, typing.Callable):
-        return func
     else:
-        pass  # Raise some error
+        return func
 
 
-def takes_function(func):
+def takes_function(func: typing.Callable) -> typing.Callable:
+    """
+    Wrapper around class method that takes a function or string as first argument that parses it using :py:func:`parse_func`.
+
+    :param func: a function
+    :return: a function
+    """
+
     @functools.wraps(func)
     def wrapper(self, f_or_str, *args, **kwargs):
         f = parse_func(f_or_str)
@@ -38,30 +55,12 @@ def takes_function(func):
     return wrapper
 
 
-def returns_iterator(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        ret = func(*args, **kwargs)
+def empty_iterable() -> typing.Iterable:
+    """
+    Return an empty iterable, i.e., an empty list.
 
-        # Avoids nesting iterators
-        if isinstance(ret, Iterator):
-            return ret
-        else:
-            return Iterator(ret)
-
-    return wrapper
-
-
-def returns_self(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        func(self, *args, **kwargs)
-        return self
-
-    return wrapper
-
-
-def empty_iterable():
+    :return: an iterable
+    """
     return list()
 
 
@@ -93,7 +92,9 @@ class Iterable(object):
 
     def iter(self) -> "Iterator":
         """
-        Return iterator version of current object.
+        Return an iterator version of current object.
+
+        :return: an Iterator
 
         :Example:
 
@@ -107,13 +108,28 @@ class Iterable(object):
     def __iter__(self):
         return self.iter()
 
-    def __next__(self):
-        return next(self.x)
+    def set_value(self, x: typing.Iterable) -> "Iterable":
+        """
+        Change the content of current Iterable to be `x`.
 
-    def set_value(self, x):
+        :param: an Iterable
+        :return: self
+
+        :Example:
+
+        >>> from flpy import It
+        >>> x = It([1, 2, 3])
+        >>> x.set_value([4, 5, 6])
+        ItA<[4, 5, 6]>
+        """
         self.x = x
 
-    def unwrap(self):
+    def unwrap(self) -> typing.Iterable:
+        """
+        Return the iterable object hold by current Iterable instance.
+
+        :return: an iterable
+        """
         return self.x
 
     @takes_function
@@ -121,8 +137,8 @@ class Iterable(object):
         """
         Apply built-in :py:func:`.map` on current object.
 
-        :param f: a function or string (see :py:func:`parse_func`)
-        :return: the resulting iterator
+        :param f: a :py:func:`parse_func` compatible function
+        :return: an Iterator
 
         :Examples:
 
@@ -137,8 +153,8 @@ class Iterable(object):
         """
         Apply built-in :py:func:`.filter` on current object.
 
-        :param f: a function or string (see :py:func:`parse_func`)
-        :return: the resulting iterator
+        :param f: a :py:func:`parse_func` compatible function
+        :return: an Iterator
 
         :Examples:
 
@@ -148,20 +164,35 @@ class Iterable(object):
         """
         return Iterator(filter(f, self.x))
 
-    def collect(self, collector: typing.Callable = list):
+    @takes_function
+    def collect(self, collector: typing.Callable = list) -> "Iterable":
+        """
+        Collect the current Iterable into a new Iterable using `collector` function.
+        By default, it will transform the content into a list.
+
+        :param f: a :py:func:`parse_func` compatible function
+        :return: an Iterable
+        """
         return Iterable(collector(self.x))
 
     @takes_function
-    def filter_map(self, f):
+    def filter_map(self, f: Function) -> "Iterator":
         """
         Chain :py:meth:`Iterable.map` and :py:meth:`Iterable.filter` to only return non-None results.
+
+        :param f: a :py:func:`parse_func` compatible function
+        :return: an Iterator
+
         """
         return self.map(f).filter(None)
 
     @takes_function
-    def for_each(self, f) -> "Iterable":
+    def for_each(self, f: Function) -> "Iteratable":
         """
         Apply a function on each element and return self.
+
+        :param f: a :py:func:`parse_func` compatible function
+        :return: self
 
         :Example:
 
@@ -178,9 +209,12 @@ class Iterable(object):
 
         return self
 
-    def chain(self, *its):
+    def chain(self, *its) -> "Iterator":
         """
         Chain current object with any number of objects that implements :py:func:`iter` using :py:func:`itertools.chain`.
+
+        :param its: see :py:func:`itertools.chain` arguments
+        :return: an Iterator
 
         :Example:
 
@@ -190,20 +224,51 @@ class Iterable(object):
         """
         return Iterator(itertools.chain(self, *its))
 
-    def slice(self, *args):
+    def slice(self, *args: typing.Optional[int]) -> "Iterator":
+        """
+        Return a slice of current iterable using :py:func:`functools.islice`.
+
+        :param args: see :py:func:`functools.islice` arguments
+        :return: an Iterator
+        """
         return Iterator(itertools.islice(self.x, *args))
 
-    def skip(self, n):
+    def skip(self, n: int) -> "Iterator":
+        """
+        Return current iterator, but with first `n` items are skipped.
+
+        :param n: the number of items to skip
+        :return: an Iterator
+        """
         return self.slice(n, None)
 
-    def take(self, n):
+    def take(self, n: int) -> "Iterator":
+        """
+        Return current iterator, but with max `n` items are kept.
+
+        :param n: the number of items to keep
+        :return: an Iterator
+        """
         return self.slice(n)
 
-    def every(self, n):
+    def every(self, n: int):
+        """
+        Return current iterator, but one 1 item every `n` is kept.
+
+        :param n: the spacing between two items
+        :return: an Iterator
+        """
         return self.slice(None, None, n)
 
-    def repeat(self, times=None):
-        return Iterator(repeat(self.x, times=times))
+    def repeat(self, times: int = None) -> "Iterator":
+        """
+        Return current iterator, repeated `n` times.
+        If `n` is None, the repetition is infinite.
+
+        :param n: the number of repetitions
+        :return: an Iterator
+        """
+        return Iterator(itertools.repeat(self.x, times=times))
 
     def __getitem__(self, slc):
         try:
@@ -218,42 +283,108 @@ class Iterable(object):
             else:
                 raise TypeError
 
-    def max(self):
+    def max(self) -> typing.Any:
+        """
+        Apply built-in :py:func:`.max` on current object.
+
+        :return: the maximum
+
+        :Examples:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).max()
+        3
+        """
         return max(self.x)
 
-    def min(self):
+    def min(self) -> typing.Any:
+        """
+        Apply built-in :py:func:`.min` on current object.
+
+        :return: the minimum
+
+        :Examples:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).min()
+        1
+        """
         return min(self.x)
 
-    def min_max(self):
+    def min_max(self) -> typing.Tuple[typing.Any, typing.Any]:
+        """
+        Apply both :py:func:`min` and :py:func:`ax` on current object.
+
+        :return: the minimum and the maximum
+
+        :Examples:
+
+        >>> from flpy import It
+        >>> It([1, 2, 3]).min_max()
+        (1, 3)
+        """
         return self.min(), self.max()
 
     @takes_function
-    def reduce(self, f, *args, **kwargs):
-        return Iterator(functools.reduce(f, self.x, *args, **kwargs))
+    def reduce(self, f, *args, **kwargs) -> typing.Any:
+        """
+        Apply built-in :py:func:`functools.reduce` on current object.
+
+        :param f: a :py:func:`parse_func` compatible function
+        :return: the reduction result
+        """
+        return functools.reduce(f, self.x, *args, **kwargs)
 
     @takes_function
-    def accumulate(self, f, *args, **kwargs):
-        return Iterator(functools.accumulate(f, self.x, *args, **kwargs))
+    def accumulate(self, f) -> "Iterator":
+        """
+        Apply built-in :py:func:`functools.accumulate` on current object.
 
-    def zip(self, *args):
+        :param f: a :py:func:`parse_func` compatible function
+        :return: an Iterator
+        """
+        return Iterator(itertools.accumulate(f, self.x))
+
+    def zip(self, *args) -> "Iterator":
+        """
+        Apply built-in :py:func:`.zip` on current object.
+
+        :param args: see :py:func:`.zip` arguments
+        :return: an Iterator
+        """
         return Iterator(zip(self.x, *args))
 
     def zip_longest(self, *args):
+        """
+        Apply built-in :py:func:`itertools.zip_longest` on current object.
+
+        :param args: see :py:func:`itertools.zip_longest` arguments
+        :return: an Iterator
+        """
         return Iterator(itertools.zip_longest(self.x, *args))
 
-    @returns_self
-    def to(self, template, safe=True):
-        template.set_value(self.x)
+    def to(self, iterable: "Iterable", safe: bool = True) -> "Iterable":
+        """
+        Move current iterable value into argument object.
+        By default (if `safe`), the content of self will be set to an empty value, to avoid two Iterable objects sharing the same content.
+
+        :param iterable: target iterable
+        :param safe: if safe, set content of self to an empty Iterable
+        :return: self
+        """
+        iterable.set_value(self.x)
 
         if safe:
             self.set_value(empty_iterable())
+
+        return self
 
 
 def empty_iterator() -> typing.Iterator:
     """
     Return an empty iterator.
 
-    :return: an empty iterator
+    :return: an iterator
 
     :Example:
 
