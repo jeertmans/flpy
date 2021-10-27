@@ -424,7 +424,7 @@ def It(x: typing.Any) -> typing.Union[Iterable, Iterator]:
     """
     Create an instance of Iterable or Iterator object depending on if the argument implements :py:func:`next` or not.
     """
-    if isinstance(x, Iterator):
+    if isinstance(x, typing.Iterator):
         return Iterator(x)
     else:
         try:

@@ -62,4 +62,3 @@ Non-exhaustive list of ideas.
 8. Add benchmarks vs. pure Python to measure overhead
 9. Add support for async iterators
 10. ...
-
