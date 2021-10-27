@@ -208,7 +208,13 @@ class Iterable(object):
         2
         3
         >>> it
-        It<A>[1, 2, 3]>
+        ItA<[1, 2, 3]>
+        >>> it = It(i for i in [1, 2, 3]).for_each('|v| print(v)').collect()
+        1
+        2
+        3
+        >>> it  # Here generator was consumed to <it> is now empty
+        ItA<[]>
         """
         for e in self.x:
             f(e)
@@ -420,9 +426,20 @@ class Iterator(Iterable):
         return next(self.x)
 
 
-def It(x: typing.Any) -> typing.Union[Iterable, Iterator]:
+def It(x: typing.Iterable) -> typing.Union[Iterable, Iterator]:
     """
     Create an instance of Iterable or Iterator object depending on if the argument implements :py:func:`next` or not.
+
+    :param x: an iterable
+    :return: an Iterable or a subclass
+
+    :Example:
+
+    >>> from flpy import It
+    >>> type(It([1, 2, 3]))
+    <class 'flpy.iterators.Iterable'>
+    >>> type(It(i for i in [1, 2, 3]))
+    <class 'flpy.iterators.Iterator'>
     """
     if isinstance(x, typing.Iterator):
         return Iterator(x)
