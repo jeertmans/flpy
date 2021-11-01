@@ -2,3 +2,7 @@
 *.pyc
 
 docs/build/*
+
+flpy.egg-info/
+
+dist/
