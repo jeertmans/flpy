@@ -34,7 +34,7 @@ def bench_python(n):
     x = range(n)
     y = map(lambda v: v * v, x)
     y = filter(lambda v: v % 3 == 0, y)
-    for i in range( n // 2):
+    for i in range(n // 2):
         next(y, None)
     return list(y)
 
@@ -43,7 +43,7 @@ def bench_python(n):
 def bench_python_comp(n):
     x = range(n)
     seq = (y for y in (v * v for v in x) if y % 3 == 0)
-    for i in range(n // 2) :
+    for i in range(n // 2):
         next(seq, None)
     return list(seq)
 
@@ -54,6 +54,7 @@ def main():
     for func in benches:
         t = timeit(lambda: func(n), number=k)
         print(f"Bench {func} took {t} seconds.")
+
 
 if __name__ == "__main__":
     main()
